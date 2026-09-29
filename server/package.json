@@ -1,0 +1,28 @@
+{
+  "name": "statistics-tracker-server",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node22 --format=esm --packages=external --outfile=dist/index.js && esbuild scripts/backup.ts --bundle --platform=node --target=node22 --format=esm --packages=external --outfile=dist/backup.js",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/index.js",
+    "seed:demo": "tsx scripts/seed-demo.ts",
+    "backup": "tsx scripts/backup.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.12",
+    "@hono/zod-validator": "^0.9.1",
+    "@libsql/client": "^0.15.0",
+    "hono": "^4.7.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.3"
+  },
+  "license": "AGPL-3.0-only"
+}

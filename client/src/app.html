@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="de" data-theme="dark">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="theme-color" content="#1a56db" />
+		<title>Handball Stats</title>
+		<link rel="icon" type="image/png" href="/icon-192.png" />
+		<link rel="apple-touch-icon" href="/icon-192.png" />
+		<link rel="manifest" href="/manifest.webmanifest" />
+		<script>
+			// Remove service workers registered by older versions of this app on the same origin.
+			if ('serviceWorker' in navigator) {
+				navigator.serviceWorker
+					.getRegistrations()
+					.then(function (rs) { rs.forEach(function (r) { r.unregister(); }); })
+					.catch(function () {});
+			}
+		</script>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

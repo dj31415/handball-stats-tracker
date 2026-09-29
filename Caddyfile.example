@@ -1,0 +1,8 @@
+# Copy to "Caddyfile" and replace the domain with your own.
+# The domain's DNS A/AAAA record must point to this server; Caddy obtains and
+# renews the TLS certificate automatically (ports 80 and 443 must be open).
+stats.example.org {
+	encode zstd gzip
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy app:3001
+}

@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+.svelte-kit/
+data/
+*.db
+.env
+.idea/
+*.iml
+*.db-wal
+*.db-shm
+*.db-journal
+.env.*
+!.env.example
+.claude/settings.local.json
+
+Caddyfile

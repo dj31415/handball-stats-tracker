@@ -1,0 +1,51 @@
+# Handball Statistics Tracker: Apache 2.4 configuration for shared hosting.
+# Requires mod_rewrite (and uses mod_headers when available).
+# Serve the app at the root of a domain or subdomain: the client is built for "/".
+
+DirectoryIndex index.html
+
+# Never serve configuration, databases, secrets or dev helpers, even if they end up in the web root.
+<FilesMatch "(^\.ht|^\.session-secret|^config\.php$|^router\.php$|\.db$|\.db-(wal|shm|journal)$)">
+	<IfModule mod_authz_core.c>
+		Require all denied
+	</IfModule>
+	<IfModule !mod_authz_core.c>
+		Order allow,deny
+		Deny from all
+	</IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+
+	# API: everything under /api/ goes to the PHP front controller (api/.htaccess does the same).
+	RewriteRule ^api(/.*)?$ api/index.php [QSA,L]
+
+	# Existing files are served as they are.
+	RewriteCond %{REQUEST_FILENAME} -f
+	RewriteRule ^ - [L]
+
+	# Missing build assets and files with an extension: 404, not the app shell.
+	RewriteRule ^_app/ - [R=404,L]
+	RewriteRule [^/]\.[^/]*$ - [R=404,L]
+
+	# Everything else is a client-side route: serve the SPA shell.
+	RewriteRule ^ index.html [L]
+</IfModule>
+
+<IfModule mod_headers.c>
+	Header set X-Content-Type-Options "nosniff"
+	Header set X-Frame-Options "SAMEORIGIN"
+	Header set Referrer-Policy "no-referrer"
+	Header set X-Robots-Tag "noindex"
+
+	# The shell must be revalidated so new deployments are picked up.
+	<FilesMatch "^index\.html$">
+		Header set Cache-Control "no-cache"
+	</FilesMatch>
+
+	# Hashed build assets never change.
+	<If "%{REQUEST_URI} =~ m#^/_app/immutable/#">
+		Header set Cache-Control "public, max-age=31536000, immutable"
+	</If>
+</IfModule>

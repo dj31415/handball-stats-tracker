@@ -1,0 +1,15 @@
+# Built client, copied into public/ by dev.sh or by hand (build.sh assembles dist/ instead)
+/public/*
+!/public/.htaccess
+!/public/api/
+!/public/router.php
+!/public/.user.ini
+
+# Local configuration and data (the root .gitignore ignores every data/ directory)
+/config.php
+!/data/
+/data/*
+!/data/.htaccess
+
+# Deployable bundle written by build.sh
+/dist/

@@ -1,0 +1,8 @@
+# Every request under /api/ is handled by the PHP front controller (index.php).
+# The original URL stays in REQUEST_URI, which index.php routes on.
+
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteRule ^index\.php$ - [L]
+	RewriteRule ^ index.php [QSA,L]
+</IfModule>

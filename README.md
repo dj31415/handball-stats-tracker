@@ -17,6 +17,7 @@ The app needs a connection to the server; there is no offline mode.
 
 - Client: SvelteKit 5 (static SPA, Svelte runes), Tailwind CSS v4 + DaisyUI, Chart.js
 - Server: Hono on Node, SQLite via `@libsql/client`, zod validation
+- Alternative server for shared hosting: plain PHP 8.2+ with PDO SQLite (`php/`), same API and database schema, no dependencies
 - `shared/types.ts`: types and stat functions shared by client and server
 
 ## Development
@@ -42,7 +43,7 @@ Log in with the `APP_PASSWORD` you started the server with. Type checks: `npm ru
 
 ## Configuration
 
-Set via environment variables (see `.env.example`).
+Set via environment variables (see `.env.example`). The PHP backend reads the same settings from `php/config.php` (see `php/config.example.php`).
 
 | Variable | Default | Description |
 | --- | --- | --- |
@@ -62,11 +63,14 @@ Set via environment variables (see `.env.example`).
 
 Docker Compose with Caddy (automatic HTTPS) is the recommended setup. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
+Without a server, on shared web hosting with Apache and PHP (for example STRATO), use the PHP backend. See [DEPLOYMENT-STRATO.md](DEPLOYMENT-STRATO.md).
+
 ## Repository layout
 
 ```
 client/   SvelteKit SPA
 server/   Hono API + static file server, scripts/ (demo seed, backup)
+php/      PHP twin of the API for shared hosting (build.sh, dev.sh, contract test)
 shared/   types.ts shared by client and server
 Dockerfile, docker-compose.yml, Caddyfile.example
 ```

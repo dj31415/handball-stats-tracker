@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Handball Statistics Tracker: a web app (static SPA + REST API) for tracking handball games courtside in real time and analysing statistics. It is online-only, with no offline mode and no service worker. Monorepo with three modules: `client/`, `server/`, `shared/`. The repository is public (AGPL-3.0-only): never commit hostnames, IPs, credentials, personal data or real club data.
+Handball Statistics Tracker: a web app (static SPA + REST API) for tracking handball games courtside in real time and analysing statistics. It is online-only, with no offline mode and no service worker. Monorepo with four modules: `client/`, `server/` (Node API), `php/` (PHP twin of the API for shared hosting), `shared/`. The repository is public (AGPL-3.0-only): never commit hostnames, IPs, credentials, personal data or real club data.
 
 ## Commands
 
@@ -26,9 +26,15 @@ npm run build                          # static build to client/build
 
 # Docker
 docker compose up -d --build           # app + Caddy (needs .env and Caddyfile)
+
+# PHP backend (needs Docker, not a local PHP) — http://localhost:8080
+php/dev.sh                             # Apache + real .htaccess, APP_PASSWORD=devpassword; stop|logs|builtin|lint
+php/dev.sh lint                        # php -l on all PHP files (8.2 and 8.3)
+php/build.sh                           # client build + php/dist/ bundle for upload
+node php/tests/contract.mjs --base http://localhost:8080 --password devpassword   # fresh data dir; also runs against :3001
 ```
 
-No test runner or linter is configured. Type safety relies on `strict` TypeScript, `svelte-check` and `tsc`.
+No test runner or linter is configured. Type safety relies on `strict` TypeScript, `svelte-check` and `tsc`. `php/tests/contract.mjs` is a black-box API contract test that must pass against both backends.
 
 ## Architecture
 
@@ -40,6 +46,7 @@ No test runner or linter is configured. Type safety relies on `strict` TypeScrip
 - **Stats** are computed client-side from events via `shared/types.ts`; nothing derived is stored.
 - **IDs** are generated on the client (`client/src/lib/id.ts`, `crypto.randomUUID()` with a fallback for plain HTTP), and inserts are idempotent (`INSERT OR IGNORE`), so retries are safe.
 - Live tracking is a single-device workflow; two devices tracking the same game is out of scope.
+- **PHP backend** (`php/`): plain PHP 8.2+ with PDO SQLite, no Composer and no dependencies, for Apache shared hosting (STRATO). `public/` is the document root (`.htaccess` routes `/api/*` to `api/index.php`, serves the built client with SPA fallback); code in `src/` mirrors `server/src` file by file. Config from `php/config.php`, env vars override. Both backends must keep the API contract (paths, status codes, JSON shapes and types, error codes, validation rules) and the SQLite schema identical: change them together and run the contract test against both. Login rate-limit state lives in a separate `ratelimit.db`, never in the main database.
 
 ### Auth model
 
@@ -55,7 +62,7 @@ No test runner or linter is configured. Type safety relies on `strict` TypeScrip
 
 ### Database
 
-SQLite at `DB_PATH` (default `DATA_DIR/handball.db`), schema created by `initDB()` in `server/src/db.ts` with `CREATE TABLE IF NOT EXISTS`. Existing databases must keep opening unchanged: schema changes in future must be migrations guarded by `PRAGMA user_version`, never destructive. Foreign keys are off.
+SQLite at `DB_PATH` (default `DATA_DIR/handball.db`), schema created by `initDB()` in `server/src/db.ts` with `CREATE TABLE IF NOT EXISTS` (copied verbatim into `php/src/Db.php`). Existing databases must keep opening unchanged: schema changes in future must be migrations guarded by `PRAGMA user_version`, never destructive. Foreign keys are off.
 
 ### Environment variables
 
@@ -63,7 +70,7 @@ SQLite at `DB_PATH` (default `DATA_DIR/handball.db`), schema created by `initDB(
 
 ### Docker
 
-Multi-stage `Dockerfile` (client build, server bundle, slim runtime running as `node` with data in `/data`). `docker-compose.yml` runs the app plus Caddy (`Caddyfile` copied from `Caddyfile.example`, git-ignored). Deployment guide: `DEPLOYMENT.md`.
+Multi-stage `Dockerfile` (client build, server bundle, slim runtime running as `node` with data in `/data`). `docker-compose.yml` runs the app plus Caddy (`Caddyfile` copied from `Caddyfile.example`, git-ignored). Deployment guide: `DEPLOYMENT.md`. Shared hosting with the PHP backend: `DEPLOYMENT-STRATO.md`.
 
 ## I18n
 
